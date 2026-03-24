@@ -1,4 +1,5 @@
 #with memory tool added
+#the memory added is inmemory, so if you close the terminal all is lost
 import asyncio
 from google.adk.agents import LlmAgent
 from google.adk.runners import InMemoryRunner
@@ -31,13 +32,14 @@ async def run_dialogue():
         session_id = session_id,
     )
 
+    # telling the agent where im travelling session
     print(f"User: Im travelling to India.")
     content = Content(role = "user", parts = [Part(text = "Im travelling to India")])
 
     async for event in runner.run_async(user_id = "user1", session_id = session_id, new_message = content):
         # to check if the event has content and is from the agent and not the user.
         if event.content and event.content.parts and event.author != "user":
-            for part in event.contents.parts:
+            for part in event.content.parts:
                 if part.text:
                     print(f"Agent: {part.text}")
 
@@ -49,7 +51,19 @@ async def run_dialogue():
         session_id = session_id
     )
 
-    await runner.memory_service.add_seesion_to_memory(session)
+    # keeps on storing the conversion we have
+    await runner.memory_service.add_session_to_memory(session)
+
+    # a second conversation telling the agent where im departing from by posing a question
+    print(f"User: Where am I travelling?")
+    content = Content(role = "user", parts = [Part(text = "Where am I travelling?")])
+
+    async for event in runner.run_async(user_id = "user1", session_id = session_id, new_message = content):
+        # to check if the event has content and is from the agent and not the user.
+        if event.content and event.content.parts and event.author != "user":
+            for part in event.content.parts:
+                if part.text:
+                    print(f"Agent: {part.text}")
 
 
 asyncio.run(run_dialogue())
